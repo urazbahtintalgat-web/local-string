@@ -190,30 +190,44 @@ char *my_strdup(const char *s) {
 /**
 *@brief Эта функция считывает строку из файла до первого \н или до конца файла с конечным \0
 */
-int my_getline(char** lineptr, size_t* n, FILE* stream) {
+ssize_t my_getline(char** lineptr, size_t* n, FILE* stream) {
     if (!lineptr || !n || !stream) return -1;
 
-    size_t size = 64;
-    size_t i = 0;
+    size_t size = 32;
+    if (*lineptr) {
+        assert(*n != 0);
+        size = *n;
+    }
+
+    ssize_t i = 0;
     if (!*lineptr) {
         *lineptr = (char *) calloc(size, sizeof(char));
     }
 
     char ch = 0;
+    char *shit = NULL;
     while ((ch = getc(stream)) != '\n' && ch != EOF) {
         if (i == size - 1){
             size *= 2;
-            *lineptr = (char *) realloc(*lineptr, size);
+            shit = (char *) realloc(*lineptr, size);
+            if (shit == NULL) {
+                free(*lineptr);
+                return -1;
+            }
+            *lineptr = shit;
         }
         *(*lineptr + i) = ch;
         i++;
+    }
+    if (i == 0) {
+        return -1;
     }
     if (ch == '\n'){
         *(*lineptr + i) = '\n';
         i++;
     }
     *(*lineptr + i) = '\0';
-    return (int) i;
+    return i;
 }
 
 /**
@@ -243,21 +257,12 @@ const char * my_strstr(const char * string1, const char * string2) {
     }
     return NULL;
 }
-
-char * strtok(char * string, const char * delim) {
-    static int n = -1;
-    n++;
-    static char my_string[] = string;
-    size_t len_delim = my_strlen(delim);
-    size_t i = 0;
-    int numberof0 = 0;
-    while (numberof0 < n || my_string[i] != '\0') {
-
-
-
-
-// K&R еще раз про статик, проверь этот код
-
-strtok(" ");
-
-"abc\0bcd\0dce"
+//char * strtok(char * string, const char * delim) {
+//    static int n = -1;
+//    n++;
+//    static char my_string[] = string;
+//    size_t len_delim = my_strlen(delim);
+//    size_t i = 0;
+//    int numberof0 = 0;
+//    while (numberof0 < n || my_string[i] != '\0') {
+//
